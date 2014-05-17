@@ -1,23 +1,36 @@
-// globals
-var http    = require('http');
-var express = require('express');
-
-    items   = require('./routes/items');
-var app     = module.exports = express();
-
-app.configure(function() {
-    app.use(express.logger('dev'));
-    app.use(express.bodyParser());
+// connect to mongodb
+var mongoUri = process.env.MONGOLAB_URI
+    || process.env.MONGOHQ_URL
+    || 'mongodb://localhost/todo';
+mongoose = require('mongoose');
+mongoose.connect(mongoUri);
+mongoose.connection.on('error', function() {
+    console.log('ERROR: Unable to connect to MongoDB.');
 });
 
-var port = process.env.PORT || 8000;
+http = require('http');
+express = require('express');
 
+app = module.exports = express();
+app.configure(function() {
+    app.set('title', 'To-Do');
+    app.use(express.logger('dev'));
+    app.use(express.bodyParser());
+    app.use(express.static(__dirname + '/public'));
+});
+
+// models
+items   = require('./routes/items');
+
+// routes
 app.get(    '/api/items',       items.findAll);
 app.get(    '/api/items/:id',   items.findById);
 app.post(   '/api/items',       items.add);
 app.put(    '/api/items/:id',   items.update);
 app.delete( '/api/items/:id',   items.delete);
 
-app.listen(port);
-console.log('Listening on ' + port);
+var port = process.env.PORT || 8000;
+app.listen(port, function() {
+    console.log('Listening on ' + port);
+});
 
