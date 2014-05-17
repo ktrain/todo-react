@@ -1,0 +1,19 @@
+{
+    "name": "todo",
+    "description" : "Simple To-Do List",
+    "version": "0.0.1",
+    "main": "app.js",
+    "dependencies": {
+        "express": "3.x",
+        "mongodb": "x"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:ktrain/todo.git"
+    },
+    "author": "ktrain",
+    "license": "BSD-2-Clause",
+    "bugs": {
+        "url": "https://github.com/ktrain/todo/issues"
+    }
+}
