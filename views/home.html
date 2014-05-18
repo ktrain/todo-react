@@ -25,41 +25,74 @@
 
     var List = React.createClass({
         getInitialState: function() {
-            return {items:[]};
+            return { items: [] };
         },
 
         componentDidMount: function() {
             $.get(this.props.source, function(result) {
-                console.log(result);
-                this.setState({
-                    items: result
-                });
+                this.setState({ items: result });
             }.bind(this));
         },
 
-        addNewItem: function(data) {
+        addItem: function(newItemValue) {
             var items = this.state.items;
-            items.push(data);
-            this.setState({items:items});
-            console.log(this.state.items);
+            var newItemData = {
+                index: items.length,
+                value: newItemValue,
+                checked: false
+            };
+
+            $.post(this.props.source, newItemData, function(data) {
+                items.push(data);
+                this.setState({ items: items });
+                console.log('added new item');
+                console.log(data);
+            }.bind(this));
+        },
+
+        removeItem: function(index) {
+            console.log('deleting items[' + index + ']');
+            var deleteTarget = this.state.items[index];
+            if (!deleteTarget) {
+                return;
+            }
+
+            $.ajax({
+                type: 'DELETE',
+                url: this.props.source + '/' + deleteTarget._id,
+                success: function() {
+                    var items = this.state.items;
+                    delete items[index];
+                    this.setState({ items: items });
+                }.bind(this)
+            });
         },
 
         render: function() {
             var items = this.state.items;
-            var newItemFieldData = {
-                value: <NewItemField
-                    target={this.props.source}
-                    index={items.length}
-                    afterSave={this.addNewItem}
-                />
-            };
+            var deleteCallback = this.removeItem;
+            var saveCallback = this.addItem;
+
+            console.log(items);
 
             return (
                 <ol className="list">
                     {items.map(function(item) {
-                        return <Item key={item._id} initialData={item} />;
+                        return (
+                            <Item key={item._id}
+                                initialData={item}
+                                deleteCallback={deleteCallback}
+                            />
+                        );
                     })}
-                    <Item key="newItem" initialData={newItemFieldData} />
+                    <Item key="newItem"
+                        initialData={{
+                            value: <NewItemField
+                                index={items.length}
+                                saveCallback={saveCallback}
+                            />
+                        }}
+                    />
                 </ol>
             );
         }
@@ -71,19 +104,12 @@
         },
 
         handleChange: function(evt) {
-            this.setState({value: evt.target.value});
+            this.setState({ value: evt.target.value });
         },
 
         save: function() {
-            var newItemData = {
-                index: this.props.index,
-                value: this.state.value,
-                checked: false
-            }
-            $.post(this.props.target, newItemData, function(data) {
-                this.props.afterSave(data);
-                this.setState(this.getInitialState());
-            }.bind(this));
+            this.props.saveCallback(this.state.value);
+            this.setState(this.getInitialState());
         },
 
         render: function() {
@@ -96,6 +122,16 @@
         }
     });
 
+    var DeleteButton = React.createClass({
+        fire: function() {
+            this.props.callback(this.props.index);
+        },
+        render: function() {
+            return <a onClick={this.fire}>X</a>
+        },
+    });
+
+
     var Item = React.createClass({
         getInitialState: function() {
             return this.props.initialData;
@@ -103,7 +139,13 @@
 
         render: function() {
             return (
-                <li>{this.state.value}</li>
+                <li>
+                    {this.state.value}
+                    <DeleteButton
+                        index={this.state.index}
+                        callback={this.props.deleteCallback}
+                    />
+                </li>
             );
         }
     });
