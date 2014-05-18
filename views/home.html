@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <title>To-Do</title>
 
+    <link href="../css/styles.css" rel="stylesheet" type="text/css" />
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
     <script src="//fb.me/react-0.10.0.js"></script>
     <script src="//fb.me/JSXTransformer-0.10.0.js"></script>
@@ -139,13 +141,13 @@
         },
 
         render: function() {
-            return (<li><input
+            return (<li><div><input
                 type="text"
                 placeholder="New item"
                 onChange={this.handleChange}
                 onBlur={this.save}
                 value={this.state.value}
-            /></li>);
+            /></div></li>);
         }
     });
 
@@ -155,6 +157,16 @@
                 value: this.props.initialValue,
                 editMode: false
             };
+        },
+
+        onKeyPress: function(evt) {
+            if (evt.keyCode === 13) {
+                this.save();
+            }
+        },
+
+        handleClick: function(evt) {
+            this.enableEditMode();
         },
 
         enableEditMode: function() {
@@ -186,16 +198,23 @@
             if (this.state.editMode) {
                 console.log(this.state);
                 return (
-                    <input
-                        type="text"
-                        onChange={this.handleChange}
-                        onBlur={this.save}
-                        value={this.state.value}
-                    />
+                    <div>
+                        <input
+                            type="text"
+                            onChange={this.handleChange}
+                            onBlur={this.save}
+                            onKeyPress={this.onKeyPress}
+                            value={this.state.value}
+                        />
+                        <DeleteButton
+                            id={this.state.id}
+                            deleteCallback={this.props.deleteCallback}
+                        />
+                    </div>
                 );
             }
 
-            return <span onClick={this.enableEditMode}>{this.state.value}</span>
+            return <div onClick={this.handleClick}>{this.state.value}</div>
         }
     });
 
@@ -212,10 +231,6 @@
                         initialValue={this.state.value}
                         updateCallback={this.props.updateCallback}
                     />
-                    <DeleteButton
-                        id={this.state.id}
-                        deleteCallback={this.props.deleteCallback}
-                    />
                 </li>
             );
         }
@@ -226,7 +241,7 @@
             this.props.deleteCallback(this.props.id);
         },
         render: function() {
-            return <a onClick={this.fire}>X</a>
+            return <a className="delete" onClick={this.fire}>X</a>
         },
     });
 

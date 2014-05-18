@@ -1,0 +1,26 @@
+body {
+  font-family: 'Helvetica', sans-serif;
+}
+
+.container {
+  width: 480px;
+  margin: 200px auto;
+}
+
+.list li {
+  line-height: 30px;
+}
+.list li div {
+}
+.list input {
+  width: 420px;
+  box-sizing: border-box;
+}
+.list .delete {
+  font-weight: bold;
+  color: #900;
+  float: right;
+  text-align: center;
+
+  cursor: pointer;
+}
