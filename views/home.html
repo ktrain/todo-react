@@ -37,22 +37,70 @@
             }.bind(this));
         },
 
+        addNewItem: function(data) {
+            var items = this.state.items;
+            items.push(data);
+            this.setState({items:items});
+            console.log(this.state.items);
+        },
+
         render: function() {
             var items = this.state.items;
+            var newItemFieldData = {
+                value: <NewItemField
+                    target={this.props.source}
+                    index={items.length}
+                    afterSave={this.addNewItem}
+                />
+            };
+
             return (
-                <ol>
+                <ol className="list">
                     {items.map(function(item) {
-                        return <Item data={item} />;
+                        return <Item key={item._id} initialData={item} />;
                     })}
+                    <Item key="newItem" initialData={newItemFieldData} />
                 </ol>
             );
         }
     });
 
+    var NewItemField = React.createClass({
+        getInitialState: function() {
+            return {value:''};
+        },
+
+        handleChange: function(evt) {
+            this.setState({value: evt.target.value});
+        },
+
+        save: function() {
+            var newItemData = {
+                index: this.props.index,
+                value: this.state.value,
+                checked: false
+            }
+            $.post(this.props.target, newItemData, function(data) {
+                this.props.afterSave(data);
+                this.setState(this.getInitialState());
+            }.bind(this));
+        },
+
+        render: function() {
+            return (<input type="text"
+                placeholder="New item"
+                onChange={this.handleChange}
+                onBlur={this.save}
+                value={this.state.value}
+            />);
+        }
+    });
+
     var Item = React.createClass({
         getInitialState: function() {
-            return this.props.data;
+            return this.props.initialData;
         },
+
         render: function() {
             return (
                 <li>{this.state.value}</li>
