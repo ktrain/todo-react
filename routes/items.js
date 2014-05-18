@@ -16,7 +16,7 @@ Item = mongoose.model('Item', ItemSchema);
 
 // module functions
 exports.findAll = function(req, res) {
-    console.log('Fetching all items');
+    console.log('Finding all items');
     return Item.find(function (err, items) {
         if (err) {
             console.log(err);
@@ -28,7 +28,7 @@ exports.findAll = function(req, res) {
 
 exports.findById = function(req, res) {
     var id = req.params.id;
-    console.log('Fetching item: ' + id);
+    console.log('Finding item: ' + id);
     return Item.findById(id, function(err, item) {
         if (err) {
             console.log(err);
@@ -64,6 +64,7 @@ exports.update = function(req, res) {
 
 exports.delete = function(req, res) {
     var id = req.params.id;
+    console.log('Deleting item: ' + id);
     return Item.remove({'_id':id}, function(err) {
         if (err) {
             console.log(err);

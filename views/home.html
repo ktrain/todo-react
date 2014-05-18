@@ -33,7 +33,6 @@
         componentDidMount: function() {
             $.get(this.props.source, function(result) {
                 var items = {};
-                console.log(items);
                 result.map(function(item) {
                     items[item.id] = item;
                 });
@@ -53,12 +52,13 @@
 
             $.post(this.props.source, newItemData, function(data) {
                 items[data.id] = data;
-                this.setState({ items: items });
-                console.log('added new item');
-                console.log(data);
-                if (typeof callback === 'function') {
-                    callback(data);
-                }
+                this.setState({ items: items }, function() {
+                    console.log('added new item:');
+                    console.log(data);
+                    if (typeof callback === 'function') {
+                        callback(data);
+                    }
+                });
             }.bind(this));
         },
 
@@ -91,10 +91,11 @@
                 success: function(data) {
                     var items = this.state.items;
                     items[newData.id] = data;
-                    this.setState({ items: items });
-                    if (typeof callback === 'function') {
-                        callback(data);
-                    }
+                    this.setState({ items: items }, function() {
+                        if (typeof callback === 'function') {
+                            callback(data);
+                        }
+                    });
                 }.bind(this)
             });
         },
@@ -129,6 +130,12 @@
             return { value: '' };
         },
 
+        onKeyPress: function(evt) {
+            if (evt.keyCode === 13) {
+                this.save();
+            }
+        },
+
         handleChange: function(evt) {
             this.setState({ value: evt.target.value });
         },
@@ -149,6 +156,7 @@
                 placeholder="New item"
                 onChange={this.handleChange}
                 onBlur={this.save}
+                onKeyPress={this.onKeyPress}
                 value={this.state.value}
             /></div></li>);
         }
@@ -158,6 +166,7 @@
         getInitialState: function() {
             return {
                 value: this.props.initialValue,
+                oldValue: this.props.initialValue,
                 editMode: false
             };
         },
@@ -173,7 +182,10 @@
         },
 
         enableEditMode: function() {
-            this.setState({ editMode: true });
+            this.setState({
+                oldValue: this.state.value,
+                editMode: true
+            });
         },
 
         disableEditMode: function() {
@@ -185,9 +197,10 @@
         },
 
         save: function() {
-            console.log(this.props);
-            // TODO: compare state to props to check for changes?
-            // after saving, will the new value be in the props?
+            if (this.state.value == this.state.oldValue) {
+                this.disableEditMode();
+                return;
+            }
             var newData = {
                 id: this.props.id,
                 value: this.state.value
@@ -199,7 +212,6 @@
 
         render: function() {
             if (this.state.editMode) {
-                console.log(this.state);
                 return (
                     <div>
                         <input
@@ -251,16 +263,15 @@
         },
 
         handleChange: function(evt) {
-            this.setState({ checked : !this.state.checked });
-            this.save();
+            this.setState({ checked : !this.state.checked }, function() {
+                this.save();
+            });
         },
 
         save: function() {
-            // TODO: why doesn't the effect of setState() in handleChange() show here?
-            console.log('saving checked: ' + !this.state.checked);
             this.props.updateCallback({
                 id: this.props.id,
-                checked: !this.state.checked
+                checked: this.state.checked
             });
         },
 
