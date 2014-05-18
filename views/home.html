@@ -65,7 +65,9 @@
         removeItem: function(id) {
             console.log('deleting items[' + id + ']');
             var deleteTarget = this.state.items[id];
+            console.log(this.state.items);
             if (!deleteTarget) {
+                console.log('no target');
                 return;
             }
 
@@ -143,6 +145,7 @@
         render: function() {
             return (<li><div><input
                 type="text"
+                className="new-field"
                 placeholder="New item"
                 onChange={this.handleChange}
                 onBlur={this.save}
@@ -207,7 +210,7 @@
                             value={this.state.value}
                         />
                         <DeleteButton
-                            id={this.state.id}
+                            id={this.props.id}
                             deleteCallback={this.props.deleteCallback}
                         />
                     </div>
@@ -226,12 +229,44 @@
         render: function() {
             return (
                 <li>
+                    <ItemCheckbox
+                        id={this.state.id}
+                        initialValue={this.state.checked}
+                        updateCallback={this.props.updateCallback}
+                    />
                     <ItemField
                         id={this.state.id}
                         initialValue={this.state.value}
                         updateCallback={this.props.updateCallback}
+                        deleteCallback={this.props.deleteCallback}
                     />
                 </li>
+            );
+        }
+    });
+
+    var ItemCheckbox = React.createClass({
+        getInitialState: function() {
+            return { checked : Boolean(this.props.initialValue) };
+        },
+
+        handleChange: function(evt) {
+            this.setState({ checked : !this.state.checked });
+            this.save();
+        },
+
+        save: function() {
+            // TODO: why doesn't the effect of setState() in handleChange() show here?
+            console.log('saving checked: ' + !this.state.checked);
+            this.props.updateCallback({
+                id: this.props.id,
+                checked: !this.state.checked
+            });
+        },
+
+        render: function() {
+            return (
+                <input type="checkbox" checked={this.state.checked} onChange={this.handleChange} />
             );
         }
     });

@@ -1,5 +1,12 @@
+:focus {
+  outline: 0;
+}
 body {
   font-family: 'Helvetica', sans-serif;
+  font-size: 16px;
+}
+body input {
+  font-size: 16px;
 }
 
 .container {
@@ -7,14 +14,43 @@ body {
   margin: 200px auto;
 }
 
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .list li {
-  line-height: 30px;
+  line-height: 35px;
 }
 .list li div {
+  display: inline-block;
+  width: 400px;
 }
-.list input {
-  width: 420px;
+.list input[type="text"] {
+  width: 375px;
   box-sizing: border-box;
+  line-height: 27px;
+  padding: 0 5px;
+}
+.list input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+  margin-right: 15px;
+}
+.list input[type="checkbox"]:hover {
+  background: #00a6c4;
+}
+.list input[type="checkbox"]:checked {
+  background: #00bcdd;
+}
+.list .new-field {
+  margin-left: 40px;
 }
 .list .delete {
   font-weight: bold;

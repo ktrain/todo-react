@@ -52,7 +52,7 @@ exports.add = function(req, res) {
 
 exports.update = function(req, res) {
     var id = req.params.id;
-    console.log('Updating item: ' + JSON.stringify(id));
+    console.log('Updating item: ' + JSON.stringify(req.body));
     return Item.findOneAndUpdate({'_id':id}, req.body, {}, function(err, item) {
         if (err) {
             console.log(err);
