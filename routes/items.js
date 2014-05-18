@@ -4,10 +4,11 @@ var mongo = require('mongoose');
 
 // model definition
 var ItemSchema = mongoose.Schema({
+    id:         String,
     value:      String,
     index:      Number,
     checked:    Boolean
-});
+}, { id: true });
 
 var errorResponse = {'error':'An error has occurred.'};
 

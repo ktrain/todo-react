@@ -30,40 +30,67 @@
 
         componentDidMount: function() {
             $.get(this.props.source, function(result) {
-                this.setState({ items: result });
+                var items = {};
+                console.log(items);
+                result.map(function(item) {
+                    items[item.id] = item;
+                });
+                console.log(items);
+                this.setState({ items: items });
             }.bind(this));
         },
 
-        addItem: function(newItemValue) {
+        addItem: function(newItemValue, callback) {
             var items = this.state.items;
             var newItemData = {
-                index: items.length,
+                // TODO: fix this
+                index: 0,
                 value: newItemValue,
                 checked: false
             };
 
             $.post(this.props.source, newItemData, function(data) {
-                items.push(data);
+                items[data.id] = data;
                 this.setState({ items: items });
                 console.log('added new item');
                 console.log(data);
+                if (typeof callback === 'function') {
+                    callback(data);
+                }
             }.bind(this));
         },
 
-        removeItem: function(index) {
-            console.log('deleting items[' + index + ']');
-            var deleteTarget = this.state.items[index];
+        removeItem: function(id) {
+            console.log('deleting items[' + id + ']');
+            var deleteTarget = this.state.items[id];
             if (!deleteTarget) {
                 return;
             }
 
             $.ajax({
                 type: 'DELETE',
-                url: this.props.source + '/' + deleteTarget._id,
+                url: this.props.source + '/' + deleteTarget.id,
                 success: function() {
                     var items = this.state.items;
-                    delete items[index];
+                    delete items[id];
                     this.setState({ items: items });
+                }.bind(this)
+            });
+        },
+
+        updateItem: function(newData, callback) {
+            console.log(newData);
+            $.ajax({
+                type: 'PUT',
+                url: this.props.source + '/' + newData.id,
+                data: newData,
+                success: function(data) {
+                    var items = this.state.items;
+                    items[newData.id] = data;
+                    this.setState({ items: items });
+                    if (typeof callback === 'function') {
+                        callback(data);
+                    }
                 }.bind(this)
             });
         },
@@ -72,35 +99,30 @@
             var items = this.state.items;
             var deleteCallback = this.removeItem;
             var saveCallback = this.addItem;
+            var updateCallback = this.updateItem;
 
             console.log(items);
 
             return (
                 <ol className="list">
-                    {items.map(function(item) {
+                    {Object.keys(items).map(function(id) {
                         return (
-                            <Item key={item._id}
-                                initialData={item}
+                            <Item key={id}
+                                initialData={items[id]}
                                 deleteCallback={deleteCallback}
+                                updateCallback={updateCallback}
                             />
                         );
                     })}
-                    <Item key="newItem"
-                        initialData={{
-                            value: <NewItemField
-                                index={items.length}
-                                saveCallback={saveCallback}
-                            />
-                        }}
-                    />
+                    <ItemNewField saveCallback={saveCallback} />
                 </ol>
             );
         }
     });
 
-    var NewItemField = React.createClass({
+    var ItemNewField = React.createClass({
         getInitialState: function() {
-            return {value:''};
+            return { value: '' };
         },
 
         handleChange: function(evt) {
@@ -108,29 +130,74 @@
         },
 
         save: function() {
-            this.props.saveCallback(this.state.value);
-            this.setState(this.getInitialState());
+            if (!this.state.value) {
+                return;
+            }
+            this.props.saveCallback(this.state.value, function() {
+                this.setState(this.getInitialState());
+            }.bind(this));
         },
 
         render: function() {
-            return (<input type="text"
+            return (<li><input
+                type="text"
                 placeholder="New item"
                 onChange={this.handleChange}
                 onBlur={this.save}
                 value={this.state.value}
-            />);
+            /></li>);
         }
     });
 
-    var DeleteButton = React.createClass({
-        fire: function() {
-            this.props.callback(this.props.index);
+    var ItemField = React.createClass({
+        getInitialState: function() {
+            return {
+                value: this.props.initialValue,
+                editMode: false
+            };
         },
-        render: function() {
-            return <a onClick={this.fire}>X</a>
-        },
-    });
 
+        enableEditMode: function() {
+            this.setState({ editMode: true });
+        },
+
+        disableEditMode: function() {
+            this.setState({ editMode: false });
+        },
+
+        handleChange: function(evt) {
+            this.setState({ value: evt.target.value });
+        },
+
+        save: function() {
+            console.log(this.props);
+            // TODO: compare state to props to check for changes?
+            // after saving, will the new value be in the props?
+            var newData = {
+                id: this.props.id,
+                value: this.state.value
+            };
+            this.props.updateCallback(newData, function() {
+                this.disableEditMode();
+            }.bind(this));
+        },
+
+        render: function() {
+            if (this.state.editMode) {
+                console.log(this.state);
+                return (
+                    <input
+                        type="text"
+                        onChange={this.handleChange}
+                        onBlur={this.save}
+                        value={this.state.value}
+                    />
+                );
+            }
+
+            return <span onClick={this.enableEditMode}>{this.state.value}</span>
+        }
+    });
 
     var Item = React.createClass({
         getInitialState: function() {
@@ -140,14 +207,27 @@
         render: function() {
             return (
                 <li>
-                    {this.state.value}
+                    <ItemField
+                        id={this.state.id}
+                        initialValue={this.state.value}
+                        updateCallback={this.props.updateCallback}
+                    />
                     <DeleteButton
-                        index={this.state.index}
-                        callback={this.props.deleteCallback}
+                        id={this.state.id}
+                        deleteCallback={this.props.deleteCallback}
                     />
                 </li>
             );
         }
+    });
+
+    var DeleteButton = React.createClass({
+        fire: function() {
+            this.props.deleteCallback(this.props.id);
+        },
+        render: function() {
+            return <a onClick={this.fire}>X</a>
+        },
     });
 
 
