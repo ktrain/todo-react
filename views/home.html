@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>To-Do</title>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
+    <script src="//fb.me/react-0.10.0.js"></script>
+    <script src="//fb.me/JSXTransformer-0.10.0.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <header>
+    </header>
+    <section id="main">
+    </section>
+    <footer>
+    </footer>
+
+</div>
+
+<script type="text/jsx">
+    /** @jsx React.DOM */
+
+    var List = React.createClass({
+        getInitialState: function() {
+            return {items:[]};
+        },
+
+        componentDidMount: function() {
+            $.get(this.props.source, function(result) {
+                console.log(result);
+                this.setState({
+                    items: result
+                });
+            }.bind(this));
+        },
+
+        render: function() {
+            var items = this.state.items;
+            return (
+                <ol>
+                    {items.map(function(item) {
+                        return <Item data={item} />;
+                    })}
+                </ol>
+            );
+        }
+    });
+
+    var Item = React.createClass({
+        getInitialState: function() {
+            return this.props.data;
+        },
+        render: function() {
+            return (
+                <li>{this.state.value}</li>
+            );
+        }
+    });
+
+
+    React.renderComponent(
+        <List source="/api/items" />,
+        document.getElementById('main')
+    );
+</script>
+
+</body>
+</html>

@@ -14,6 +14,7 @@ express = require('express');
 app = module.exports = express();
 app.configure(function() {
     app.set('title', 'To-Do');
+    app.engine('html', require('ejs').renderFile);
     app.use(express.logger('dev'));
     app.use(express.bodyParser());
     app.use(express.static(__dirname + '/public'));
@@ -23,6 +24,11 @@ app.configure(function() {
 items   = require('./routes/items');
 
 // routes
+app.get('/', function(req, res) {
+    res.render('home.html');
+});
+
+// api
 app.get(    '/api/items',       items.findAll);
 app.get(    '/api/items/:id',   items.findById);
 app.post(   '/api/items',       items.add);
