@@ -7,7 +7,7 @@
     <link href="../css/styles.css" rel="stylesheet" type="text/css" />
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
-    <script src="//fb.me/react-0.10.0.js"></script>
+    <script src="//fb.me/react-with-addons-0.10.0.js"></script>
     <script src="//fb.me/JSXTransformer-0.10.0.js"></script>
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     var List = React.createClass({
         getInitialState: function() {
-            return { items: [] };
+            return { items: [], working: false };
         },
 
         componentDidMount: function() {
@@ -41,6 +41,7 @@
         },
 
         addItem: function(newItemValue, callback) {
+            this.setState({ working: true });
             var items = this.state.items;
             var newItemData = {
                 // TODO: fix this
@@ -51,7 +52,7 @@
 
             $.post(this.props.source, newItemData, function(data) {
                 items[data.id] = data;
-                this.setState({ items: items }, function() {
+                this.setState({ items: items, working: false }, function() {
                     console.log('added new item:');
                     console.log(data);
                     if (typeof callback === 'function') {
@@ -62,6 +63,7 @@
         },
 
         removeItem: function(id) {
+            this.setState({ working: true });
             console.log('deleting items[' + id + ']');
             var deleteTarget = this.state.items[id];
             console.log(this.state.items);
@@ -76,12 +78,13 @@
                 success: function() {
                     var items = this.state.items;
                     delete items[id];
-                    this.setState({ items: items });
+                    this.setState({ items: items, working: false });
                 }.bind(this)
             });
         },
 
         updateItem: function(newData, callback) {
+            this.setState({ working: true });
             console.log(newData);
             $.ajax({
                 type: 'PUT',
@@ -90,7 +93,7 @@
                 success: function(data) {
                     var items = this.state.items;
                     items[newData.id] = data;
-                    this.setState({ items: items }, function() {
+                    this.setState({ items: items, working: false }, function() {
                         if (typeof callback === 'function') {
                             callback(data);
                         }
@@ -108,18 +111,21 @@
             console.log(items);
 
             return (
-                <ol className="list">
-                    {Object.keys(items).map(function(id) {
-                        return (
-                            <Item key={id}
-                                initialData={items[id]}
-                                deleteCallback={deleteCallback}
-                                updateCallback={updateCallback}
-                            />
-                        );
-                    })}
-                    <ItemNewField saveCallback={saveCallback} />
-                </ol>
+                <div className="list">
+                    <ol>
+                        {Object.keys(items).map(function(id) {
+                            return (
+                                <Item key={id}
+                                    initialData={items[id]}
+                                    deleteCallback={deleteCallback}
+                                    updateCallback={updateCallback}
+                                />
+                            );
+                        })}
+                        <ItemNewField saveCallback={saveCallback} />
+                    </ol>
+                    <LoadingNotification show={this.state.working} timeout={1000} />
+                </div>
             );
         }
     });
@@ -177,13 +183,19 @@
         },
 
         handleClick: function(evt) {
-            this.enableEditMode();
+            this.enableEditMode(function() {
+                $(this.getDOMNode()).find('input[type="text"]').focus();
+            }.bind(this));
         },
 
-        enableEditMode: function() {
+        enableEditMode: function(callback) {
             this.setState({
                 oldValue: this.state.value,
                 editMode: true
+            }, function() {
+                if (typeof callback === 'function') {
+                    callback();
+                }
             });
         },
 
@@ -193,6 +205,14 @@
 
         handleChange: function(evt) {
             this.setState({ value: evt.target.value });
+        },
+
+        showDeleteButton: function() {
+            this.setState({ showDeleteButton: true });
+        },
+
+        hideDeleteButton: function() {
+            this.setState({ showDeleteButton: false });
         },
 
         save: function() {
@@ -210,25 +230,37 @@
         },
 
         render: function() {
-            if (this.state.editMode) {
+            if (!this.state.editMode) {
+                // display mode
                 return (
-                    <div>
-                        <input
-                            type="text"
-                            onChange={this.handleChange}
-                            onBlur={this.save}
-                            onKeyPress={this.onKeyPress}
-                            value={this.state.value}
-                        />
-                        <DeleteButton
-                            id={this.props.id}
-                            deleteCallback={this.props.deleteCallback}
-                        />
+                    <div className="field-wrapper"
+                        onClick={this.handleClick}
+                        onMouseEnter={this.showDeleteButton}
+                        onMouseLeave={this.hideDeleteButton}
+                    >
+                        {this.state.value}
+                        <DeleteButton show={this.state.showDeleteButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
                     </div>
                 );
             }
 
-            return <div onClick={this.handleClick}>{this.state.value}</div>
+            // edit mode
+            return (
+                <div>
+                    <input
+                        type="text"
+                        onChange={this.handleChange}
+                        onBlur={this.save}
+                        onKeyPress={this.onKeyPress}
+                        value={this.state.value}
+                    />
+                    <DeleteButton
+                        show={this.state.showDeleteButton}
+                        id={this.props.id}
+                        deleteCallback={this.props.deleteCallback}
+                    />
+                </div>
+            );
         }
     });
 
@@ -286,8 +318,37 @@
             this.props.deleteCallback(this.props.id);
         },
         render: function() {
-            return <a className="delete" onClick={this.fire}>X</a>
+            var classes = React.addons.classSet({
+                'delete': true,
+                'show'  : this.props.show
+            });
+            return <a className={classes} onClick={this.fire}>X</a>;
         },
+    });
+
+
+    var LoadingNotification = React.createClass({
+        getInitialState: function() {
+            return { appearedAt: 0 };
+        },
+
+        componentDidUpdate: function(prevProps, prevState) {
+            if (!prevProps.show && this.props.show) {
+                this.setState({ appearedAt: Date.now() });
+            }
+        },
+
+        render: function() {
+            var notTooOld = Date.now() - this.state.appearedAt < this.props.timeout;
+            // TODO: this works, but need to figure out how to keep rerendering occasionally
+            var shouldShow = false; //this.props.show || notTooOld;
+
+            var classes = React.addons.classSet({
+                'loading'   : true,
+                'show'      : this.props.show || notTooOld
+            });
+            return <div className="loading-container"><div className={classes}></div></div>;
+        }
     });
 
 
