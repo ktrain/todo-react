@@ -13,6 +13,10 @@ var ItemSchema = mongoose.Schema({
 ItemSchema.post('init', function(item) {
     item.id = item._id;
 });
+ItemSchema.post('save', function(item) {
+    item.id = item._id;
+    item.update({id: item.id}, function(err) {});
+});
 
 Item = mongoose.model('Item', ItemSchema);
 
