@@ -25,6 +25,10 @@
 <script type="text/jsx">
     /** @jsx React.DOM */
 
+    // addons
+    var ReactClassSet = React.addons.classSet;
+    var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+
     var List = React.createClass({
         getInitialState: function() {
             return { items: [], working: false };
@@ -103,26 +107,26 @@
         },
 
         render: function() {
-            var items = this.state.items;
-            var deleteCallback = this.removeItem;
-            var saveCallback = this.addItem;
-            var updateCallback = this.updateItem;
-
-            console.log(items);
+            var items = Object.keys(this.state.items).map(function(id) {
+                var item = this.state.items[id];
+                return (
+                    <Item key={id}
+                        id={item.id}
+                        value={item.value}
+                        checked={item.checked}
+                        deleteCallback={this.removeItem}
+                        updateCallback={this.updateItem}
+                    />
+                );
+            }.bind(this));
 
             return (
                 <div className="list">
                     <ol>
-                        {Object.keys(items).map(function(id) {
-                            return (
-                                <Item key={id}
-                                    initialData={items[id]}
-                                    deleteCallback={deleteCallback}
-                                    updateCallback={updateCallback}
-                                />
-                            );
-                        })}
-                        <ItemNewField saveCallback={saveCallback} />
+                        <ReactCSSTransitionGroup transitionName="item">
+                        {items}
+                        </ReactCSSTransitionGroup>
+                        <ItemNewField saveCallback={this.addItem} />
                     </ol>
                     <LoadingNotification show={this.state.working} timeout={1000} />
                 </div>
@@ -171,7 +175,7 @@
         getInitialState: function() {
             return {
                 value: this.props.initialValue,
-                oldValue: this.props.initialValue,
+                initialValue: this.props.initialValue,
                 editMode: false
             };
         },
@@ -190,7 +194,6 @@
 
         enableEditMode: function(callback) {
             this.setState({
-                oldValue: this.state.value,
                 editMode: true
             }, function() {
                 if (typeof callback === 'function') {
@@ -216,7 +219,7 @@
         },
 
         save: function() {
-            if (this.state.value == this.state.oldValue) {
+            if (this.state.value == this.props.initialValue) {
                 this.disableEditMode();
                 return;
             }
@@ -235,8 +238,8 @@
                 return (
                     <div className="field-wrapper"
                         onClick={this.handleClick}
-                        onMouseEnter={this.showDeleteButton}
-                        onMouseLeave={this.hideDeleteButton}
+                        onMouseOver={this.showDeleteButton}
+                        onMouseOut={this.hideDeleteButton}
                     >
                         {this.state.value}
                         <DeleteButton show={this.state.showDeleteButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
@@ -265,21 +268,17 @@
     });
 
     var Item = React.createClass({
-        getInitialState: function() {
-            return this.props.initialData;
-        },
-
         render: function() {
             return (
                 <li>
                     <ItemCheckbox
-                        id={this.state.id}
-                        initialValue={this.state.checked}
+                        id={this.props.id}
+                        checked={this.props.checked}
                         updateCallback={this.props.updateCallback}
                     />
                     <ItemField
-                        id={this.state.id}
-                        initialValue={this.state.value}
+                        id={this.props.id}
+                        initialValue={this.props.value}
                         updateCallback={this.props.updateCallback}
                         deleteCallback={this.props.deleteCallback}
                     />
@@ -289,40 +288,30 @@
     });
 
     var ItemCheckbox = React.createClass({
-        getInitialState: function() {
-            return { checked : Boolean(this.props.initialValue) };
-        },
-
         handleChange: function(evt) {
-            this.setState({ checked : !this.state.checked }, function() {
-                this.save();
-            });
-        },
-
-        save: function() {
             this.props.updateCallback({
                 id: this.props.id,
-                checked: this.state.checked
+                checked: this.refs.box.getDOMNode().checked
             });
         },
 
         render: function() {
             return (
-                <input type="checkbox" checked={this.state.checked} onChange={this.handleChange} />
+                <input type="checkbox" ref="box" checked={this.props.checked} onChange={this.handleChange} />
             );
         }
     });
 
     var DeleteButton = React.createClass({
-        fire: function() {
+        handleClick: function() {
             this.props.deleteCallback(this.props.id);
         },
         render: function() {
-            var classes = React.addons.classSet({
+            var classes = ReactClassSet({
                 'delete': true,
                 'show'  : this.props.show
             });
-            return <a className={classes} onClick={this.fire}>X</a>;
+            return <a className={classes} onClick={this.handleClick}>X</a>;
         },
     });
 
@@ -343,9 +332,9 @@
             // TODO: this works, but need to figure out how to keep rerendering occasionally
             var shouldShow = false; //this.props.show || notTooOld;
 
-            var classes = React.addons.classSet({
+            var classes = ReactClassSet({
                 'loading'   : true,
-                'show'      : this.props.show || notTooOld
+                'show'      : shouldShow
             });
             return <div className="loading-container"><div className={classes}></div></div>;
         }

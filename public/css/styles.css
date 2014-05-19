@@ -90,3 +90,19 @@ ol {
   display: block;
 }
 
+/* animations */
+.item-enter {
+  opacity: 0.01;
+  transition: opacity .5s ease-in;
+}
+.item-enter.item-enter-active {
+  opacity: 1;
+}
+
+.item-leave {
+  opacity: 1;
+  transition: opacity .5s ease-in;
+}
+.item-leave.item-leave-active {
+  opacity: 0.01;
+}
