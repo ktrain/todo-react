@@ -8,11 +8,16 @@ var ItemSchema = mongoose.Schema({
     value:      String,
     index:      Number,
     checked:    Boolean
-}, { id: true });
+});
 
-var errorResponse = {'error':'An error has occurred.'};
+ItemSchema.post('init', function(item) {
+    item.id = item._id;
+});
 
 Item = mongoose.model('Item', ItemSchema);
+
+var errorResponse = { 'error': 'An error has occurred.' };
+
 
 // module functions
 exports.findAll = function(req, res) {
@@ -38,8 +43,8 @@ exports.findById = function(req, res) {
     });
 };
 
-exports.add = function(req, res) {
-    console.log('Adding new item: ' + JSON.stringify(req.body));
+exports.create = function(req, res) {
+    console.log('Creating new item: ' + JSON.stringify(req.body));
     var item = new Item(req.body);
     return item.save(function(err) {
         if (err) {
@@ -47,6 +52,7 @@ exports.add = function(req, res) {
             return res.status(500).send(errorResponse);
         }
         res.send(item);
+        console.log('Created new item: ' + JSON.stringify(item));
     });
 };
 

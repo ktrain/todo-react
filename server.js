@@ -31,7 +31,7 @@ app.get('/', function(req, res) {
 // api
 app.get(    '/api/items',       items.findAll);
 app.get(    '/api/items/:id',   items.findById);
-app.post(   '/api/items',       items.add);
+app.post(   '/api/items',       items.create);
 app.put(    '/api/items/:id',   items.update);
 app.delete( '/api/items/:id',   items.delete);
 
