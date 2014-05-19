@@ -31,7 +31,7 @@
 
     var List = React.createClass({
         getInitialState: function() {
-            return { items: [], working: false };
+            return { items: [], working: false, workingSince: 0 };
         },
 
         componentDidMount: function() {
@@ -42,6 +42,13 @@
                 });
                 this.setState({ items: items });
             }.bind(this));
+        },
+
+        componentDidUpdate: function(prevProps, prevState) {
+            // when the working state blips, save the signal
+            if (!prevState.working && this.state.working) {
+                this.setState({ workingSince: Date.now() });
+            }
         },
 
         addItem: function(newItemValue, callback) {
@@ -107,7 +114,8 @@
         },
 
         render: function() {
-            var items = Object.keys(this.state.items).map(function(id) {
+            // render items
+            var renderedItems = Object.keys(this.state.items).map(function(id) {
                 var item = this.state.items[id];
                 return (
                     <Item key={id}
@@ -120,15 +128,17 @@
                 );
             }.bind(this));
 
+            var showWorking = (Date.now() - this.state.workingSince) < 1000;
+
             return (
                 <div className="list">
                     <ol>
                         <ReactCSSTransitionGroup transitionName="item">
-                        {items}
+                            {renderedItems}
                         </ReactCSSTransitionGroup>
                         <ItemNewField saveCallback={this.addItem} />
                     </ol>
-                    <LoadingNotification show={this.state.working} timeout={1000} />
+                    <LoadingNotification show={showWorking} />
                 </div>
             );
         }
@@ -317,34 +327,26 @@
 
 
     var LoadingNotification = React.createClass({
-        getInitialState: function() {
-            return { appearedAt: 0 };
-        },
-
-        componentDidUpdate: function(prevProps, prevState) {
-            if (!prevProps.show && this.props.show) {
-                this.setState({ appearedAt: Date.now() });
-            }
-        },
-
         render: function() {
-            var notTooOld = Date.now() - this.state.appearedAt < this.props.timeout;
-            // TODO: this works, but need to figure out how to keep rerendering occasionally
-            var shouldShow = false; //this.props.show || notTooOld;
-
             var classes = ReactClassSet({
                 'loading'   : true,
-                'show'      : shouldShow
+                'show'      : this.props.show
             });
-            return <div className="loading-container"><div className={classes}></div></div>;
+            return (
+                <div className="loading-container">
+                    <div className={classes}></div>
+                </div>
+            );
         }
     });
 
 
-    React.renderComponent(
-        <List source="/api/items" />,
-        document.getElementById('main')
-    );
+    setInterval(function() {
+        React.renderComponent(
+            <List source="/api/items" />,
+            document.getElementById('main')
+        );
+    }, 500);
 </script>
 
 </body>
