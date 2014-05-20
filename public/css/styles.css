@@ -1,15 +1,29 @@
 :focus {
   outline: 0;
 }
+
 body {
   font-family: 'Helvetica', sans-serif;
   font-size: 16px;
+  margin: 0;
 }
 body input {
   font-size: 16px;
 }
 
-.container {
+header {
+  background: #00a6c4;
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+header h1 {
+  width: 480px;
+  margin: 0 auto;
+  color: #fff;
+  cursor: default;
+}
+
+section {
   width: 480px;
   margin: 0 auto;
 }
@@ -52,7 +66,7 @@ ol {
   background: #00a6c4;
 }
 .list input[type="checkbox"]:checked {
-  background: #00bcdd;
+  background: #43c3d9;
 }
 .list .new-field {
   margin-left: 40px;
@@ -77,7 +91,7 @@ ol {
 
 .loading-container {
   height: 33px;
-  margin: 20px 0;
+  margin-top: 10px;
 }
 .loading {
   background: url('../assets/loading.gif') no-repeat center center;
@@ -88,6 +102,15 @@ ol {
 }
 .loading.show {
   display: block;
+}
+
+footer {
+  width: 480px;
+  margin: 0 auto;
+}
+footer .code {
+  color: #ccc;
+  font-size: 12px;
 }
 
 /* animations */
