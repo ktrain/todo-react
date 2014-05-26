@@ -37,18 +37,17 @@ exports.findAll = function(req, res) {
 
 exports.findById = function(req, res) {
     var id = req.params.id;
-    console.log('Finding item: ' + id);
     return Item.findById(id, function(err, item) {
         if (err) {
             console.log(err);
             return res.status(500).send(errorResponse);
         }
         res.send(item);
+        console.log('Found item: ' + JSON.stringify(item));
     });
 };
 
 exports.create = function(req, res) {
-    console.log('Creating new item: ' + JSON.stringify(req.body));
     var item = new Item(req.body);
     return item.save(function(err) {
         if (err) {
@@ -62,25 +61,25 @@ exports.create = function(req, res) {
 
 exports.update = function(req, res) {
     var id = req.params.id;
-    console.log('Updating item: ' + JSON.stringify(req.body));
     return Item.findOneAndUpdate({'_id':id}, req.body, {}, function(err, item) {
         if (err) {
             console.log(err);
             return res.status(500).send(errorResponse);
         }
         res.send(item);
+        console.log('Updated item: ' + JSON.stringify(item));
     });
 };
 
 exports.delete = function(req, res) {
     var id = req.params.id;
-    console.log('Deleting item: ' + id);
     return Item.remove({'_id':id}, function(err) {
         if (err) {
             console.log(err);
             return res.status(500).send(errorResponse);
         }
         res.send({});
+        console.log('Deleted item: ' + id);
     });
 };
 

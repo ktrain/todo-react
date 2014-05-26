@@ -32,7 +32,7 @@
             $.get(this.props.source, function(result) {
                 var items = {};
                 result.map(function(item) {
-                    items[item.id] = item;
+                    items[item.index] = item;
                 });
                 this.setState({ items: items });
             }.bind(this));
@@ -45,15 +45,10 @@
             }
         },
 
-        addItem: function(newItemValue, callback) {
+        addItem: function(newItemData, callback) {
             this.setState({ working: true });
             var items = this.state.items;
-            var newItemData = {
-                // TODO: fix this
-                index: 0,
-                value: newItemValue,
-                checked: false
-            };
+            newItemData.checked = newItemData.checked || false;
 
             $.post(this.props.source, newItemData, function(data) {
                 items[data.id] = data;
@@ -97,7 +92,7 @@
                 data: newData,
                 success: function(data) {
                     var items = this.state.items;
-                    items[newData.id] = data;
+                    items[newData.index] = data;
                     this.setState({ items: items, working: false }, function() {
                         if (typeof callback === 'function') {
                             callback(data);
@@ -109,18 +104,19 @@
 
         render: function() {
             // render items
-            var renderedItems = Object.keys(this.state.items).map(function(id) {
-                var item = this.state.items[id];
-                return (
-                    <Item key={id}
-                        id={item.id}
-                        value={item.value}
-                        checked={item.checked}
-                        deleteCallback={this.removeItem}
-                        updateCallback={this.updateItem}
-                    />
-                );
-            }.bind(this));
+            var renderedItems = [];
+            var items = this.state.items;
+            for (var id in items) {
+                var item = items[id];
+                renderedItems[item.index] = <Item key={item.id}
+                    id={item.id}
+                    index={item.index}
+                    value={item.value}
+                    checked={item.checked}
+                    deleteCallback={this.removeItem}
+                    updateCallback={this.updateItem}
+                />;
+            }
 
             var showWorking = (Date.now() - this.state.workingSince) < 1000;
 
@@ -130,7 +126,7 @@
                         <ReactCSSTransitionGroup transitionName="item">
                             {renderedItems}
                         </ReactCSSTransitionGroup>
-                        <ItemNewField saveCallback={this.addItem} />
+                        <ItemNewField index={renderedItems.length} saveCallback={this.addItem} />
                     </ol>
                     <LoadingNotification show={showWorking} />
                 </div>
@@ -157,7 +153,7 @@
             if (!this.state.value) {
                 return;
             }
-            this.props.saveCallback(this.state.value, function() {
+            this.props.saveCallback({ index: this.props.index, value: this.state.value }, function() {
                 this.setState(this.getInitialState());
             }.bind(this));
         },
@@ -229,7 +225,8 @@
             }
             var newData = {
                 id: this.props.id,
-                value: this.state.value
+                index: this.props.index,
+                value: this.state.value,
             };
             this.props.updateCallback(newData, function() {
                 this.disableEditMode();
@@ -242,11 +239,9 @@
                 return (
                     <div className="field-wrapper"
                         onClick={this.handleClick}
-                        onMouseOver={this.showDeleteButton}
-                        onMouseOut={this.hideDeleteButton}
                     >
                         {this.state.value}
-                        <DeleteButton show={this.state.showDeleteButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
+                        <DeleteButton id={this.props.id} deleteCallback={this.props.deleteCallback} />
                     </div>
                 );
             }
@@ -282,6 +277,7 @@
                     />
                     <ItemField
                         id={this.props.id}
+                        index={this.props.index}
                         initialValue={this.props.value}
                         updateCallback={this.props.updateCallback}
                         deleteCallback={this.props.deleteCallback}
@@ -311,11 +307,7 @@
             this.props.deleteCallback(this.props.id);
         },
         render: function() {
-            var classes = ReactClassSet({
-                'delete': true,
-                'show'  : this.props.show
-            });
-            return <a className={classes} onClick={this.handleClick}>X</a>;
+            return <a className="delete" onClick={this.handleClick}>X</a>;
         },
     });
 
@@ -340,7 +332,7 @@
             <List source="/api/items" />,
             document.getElementById('main')
         );
-    }, 500);
+    }, 1000);
     </script>
 
 </body>

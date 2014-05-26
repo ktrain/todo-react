@@ -32,17 +32,34 @@ ol {
   margin: 0;
   padding: 0;
   list-style: none;
-  list-style-type: octal;
+}
+.list {
+  counter-reset: section;
 }
 .list li {
   line-height: 35px;
+  padding-left: 5px;
+}
+.list li:before {
+  counter-increment: section;
+  content: counter(section) ".";
+  display: inline-block;
+
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+
+  padding: 5px;
+}
+.list li:before:hover {
+  background: #fff;
 }
 .list li:hover {
   background: #f0f8ff;
 }
 .list li > div {
   display: inline-block;
-  width: 440px;
+  width: 405px;
   cursor: text;
 }
 .list input[type="text"] {
@@ -81,12 +98,12 @@ ol {
   cursor: pointer;
   display: none;
 }
+.list li:hover .delete {
+  display: inline-block;
+}
 .list .delete:hover {
   background: #900;
   color: #fff;
-}
-.delete.show {
-  display: block;
 }
 
 .loading-container {
