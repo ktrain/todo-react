@@ -34,32 +34,30 @@ ol {
   list-style: none;
 }
 .list {
-  counter-reset: section;
 }
 .list li {
   line-height: 35px;
-  padding-left: 5px;
 }
-.list li:before {
-  counter-increment: section;
-  content: counter(section) ".";
+.list li .number {
   display: inline-block;
-
+  padding: 0 10px;
+  cursor: default;
+}
+.list li .draggable {
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;
 
-  padding: 5px;
 }
-.list li:before:hover {
-  background: #fff;
+.list li .draggable:hover {
+  background: #ff9;
 }
 .list li:hover {
   background: #f0f8ff;
 }
 .list li > div {
   display: inline-block;
-  width: 405px;
+  width: 400px;
   cursor: text;
 }
 .list input[type="text"] {

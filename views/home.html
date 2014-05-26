@@ -159,15 +159,21 @@
         },
 
         render: function() {
-            return (<li><div><input
-                type="text"
-                className="new-field"
-                placeholder="New item"
-                onChange={this.handleChange}
-                onBlur={this.save}
-                onKeyPress={this.onKeyPress}
-                value={this.state.value}
-            /></div></li>);
+            return (
+                <li>
+                    <span className="number">{this.props.index+1}.</span>
+                    <div>
+                        <input
+                        type="text"
+                        className="new-field"
+                        placeholder="New item"
+                        onChange={this.handleChange}
+                        onBlur={this.save}
+                        onKeyPress={this.onKeyPress}
+                        value={this.state.value} />
+                    </div>
+                </li>
+            );
         }
     });
 
@@ -270,6 +276,7 @@
         render: function() {
             return (
                 <li>
+                    <span className="number">{this.props.index+1}.</span>
                     <ItemCheckbox
                         id={this.props.id}
                         checked={this.props.checked}
