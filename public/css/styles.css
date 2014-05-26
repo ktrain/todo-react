@@ -38,10 +38,17 @@ ol {
 .list li {
   line-height: 35px;
 }
+.list input[type="text"] {
+  box-sizing: border-box;
+  line-height: 24px;
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
 .list li .number {
   display: inline-block;
   padding: 0 10px;
-  cursor: default;
+  cursor: pointer;
 }
 .list li .draggable {
   cursor: -moz-grab;
@@ -52,6 +59,9 @@ ol {
 .list li .draggable:hover {
   background: #ff9;
 }
+.list input.number-editor {
+  width: 33px;
+}
 .list li:hover {
   background: #f0f8ff;
 }
@@ -60,16 +70,16 @@ ol {
   width: 400px;
   cursor: text;
 }
-.list input[type="text"] {
+.list input.value {
   width: 369px;
-  box-sizing: border-box;
-  line-height: 27px;
   padding: 0 5px;
 }
 .list input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+
+  cursor: pointer;
 
   width: 20px;
   height: 20px;
@@ -83,10 +93,10 @@ ol {
 .list input[type="checkbox"]:checked {
   background: #43c3d9;
 }
-.list .new-field {
+.list input.new-field {
   margin-left: 40px;
 }
-.list .delete {
+.list .remove {
   font-weight: bold;
   color: #900;
   float: right;
@@ -96,10 +106,10 @@ ol {
   cursor: pointer;
   display: none;
 }
-.list li:hover .delete {
+.list li:hover .remove {
   display: inline-block;
 }
-.list .delete:hover {
+.list .remove:hover {
   background: #900;
   color: #fff;
 }
@@ -139,7 +149,7 @@ footer .code {
 
 .item-leave {
   opacity: 1;
-  transition: opacity .5s ease-in;
+  transition: opacity .1s ease-in;
 }
 .item-leave.item-leave-active {
   opacity: 0.01;

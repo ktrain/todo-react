@@ -28,9 +28,10 @@
             return { items: [], working: false, workingSince: 0 };
         },
 
+        // on page load, grab list data
         componentDidMount: function() {
             $.get(this.props.source, function(result) {
-                var items = {};
+                var items = [];
                 result.map(function(item) {
                     items[item.index] = item;
                 });
@@ -51,10 +52,9 @@
             newItemData.checked = newItemData.checked || false;
 
             $.post(this.props.source, newItemData, function(data) {
-                items[data.id] = data;
+                items[data.index] = data;
                 this.setState({ items: items, working: false }, function() {
-                    console.log('added new item:');
-                    console.log(data);
+                    console.log('added new item', data);
                     if (typeof callback === 'function') {
                         callback(data);
                     }
@@ -62,22 +62,31 @@
             }.bind(this));
         },
 
-        removeItem: function(id) {
+        removeItem: function(index) {
             this.setState({ working: true });
-            console.log('deleting items[' + id + ']');
-            var deleteTarget = this.state.items[id];
-            console.log(this.state.items);
-            if (!deleteTarget) {
+            console.log('deleting items[' + index + ']');
+            var removeTarget = this.state.items[index];
+            if (!removeTarget) {
                 console.log('no target');
                 return;
             }
 
             $.ajax({
                 type: 'DELETE',
-                url: this.props.source + '/' + deleteTarget.id,
+                url: this.props.source + '/' + removeTarget.id,
                 success: function() {
                     var items = this.state.items;
-                    delete items[id];
+                    // TODO: promises
+                    for (var i = index; i < items.length-1; i++) {
+                        items[i] = items[i+1];
+                        items[i].index--;
+                        $.ajax({
+                            type: 'PUT',
+                            url: this.props.source + '/' + items[i].id,
+                            data: items[i],
+                        });
+                    }
+                    items.pop();
                     this.setState({ items: items, working: false });
                 }.bind(this)
             });
@@ -92,7 +101,7 @@
                 data: newData,
                 success: function(data) {
                     var items = this.state.items;
-                    items[newData.index] = data;
+                    items[data.index] = data;
                     this.setState({ items: items, working: false }, function() {
                         if (typeof callback === 'function') {
                             callback(data);
@@ -102,19 +111,66 @@
             });
         },
 
+        reorderItem: function(reorderData, callback) {
+            // TODO: promises
+            //this.setState({ working: true });
+            var initialIndex = reorderData.initialIndex, index = reorderData.index;
+            var items = this.state.items;
+
+            if (index < 0 || index >= items.length) {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+                return;
+            }
+
+            console.log(items);
+
+            var reorderedItem = items[initialIndex];
+
+            console.log('moving ' + (initialIndex+1) + ' to ' + (index+1));
+
+            if (index < initialIndex) {
+                // item has been moved up; move down by 1 all items in between
+                for (var i = initialIndex-1; i >= index; i--) {
+                    items[i].index++;
+                    items[i+1] = items[i];
+                }
+            } else if (index > initialIndex) {
+                // item has been moved down; move up by 1 all items in between
+                for (var i = initialIndex+1; i <= index; i++) {
+                    items[i].index--;
+                    items[i-1] = items[i];
+                }
+            }
+            // update the moved item
+            reorderedItem.index = index;
+            items[index] = reorderedItem;
+
+            this.setState({ items: items }, function() {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+
+            //this.setState({ working: false });
+        },
+
         render: function() {
             // render items
             var renderedItems = [];
             var items = this.state.items;
-            for (var id in items) {
-                var item = items[id];
+
+            for (var i in items) {
+                var item = items[i];
                 renderedItems[item.index] = <Item key={item.id}
                     id={item.id}
                     index={item.index}
                     value={item.value}
                     checked={item.checked}
-                    deleteCallback={this.removeItem}
+                    removeCallback={this.removeItem}
                     updateCallback={this.updateItem}
+                    reorderCallback={this.reorderItem}
                 />;
             }
 
@@ -123,9 +179,7 @@
             return (
                 <div className="list">
                     <ol>
-                        <ReactCSSTransitionGroup transitionName="item">
-                            {renderedItems}
-                        </ReactCSSTransitionGroup>
+                        {renderedItems}
                         <ItemNewField index={renderedItems.length} saveCallback={this.addItem} />
                     </ol>
                     <LoadingNotification show={showWorking} />
@@ -181,7 +235,6 @@
         getInitialState: function() {
             return {
                 value: this.props.initialValue,
-                initialValue: this.props.initialValue,
                 editMode: false
             };
         },
@@ -216,14 +269,6 @@
             this.setState({ value: evt.target.value });
         },
 
-        showDeleteButton: function() {
-            this.setState({ showDeleteButton: true });
-        },
-
-        hideDeleteButton: function() {
-            this.setState({ showDeleteButton: false });
-        },
-
         save: function() {
             if (this.state.value == this.props.initialValue) {
                 this.disableEditMode();
@@ -239,34 +284,31 @@
             }.bind(this));
         },
 
-        render: function() {
-            if (!this.state.editMode) {
-                // display mode
-                return (
-                    <div className="field-wrapper"
-                        onClick={this.handleClick}
-                    >
-                        {this.state.value}
-                        <DeleteButton id={this.props.id} deleteCallback={this.props.deleteCallback} />
-                    </div>
-                );
-            }
+        renderDisplayMode: function() {
+            return this.state.value;
+        },
 
-            // edit mode
+        renderEditMode: function() {
             return (
-                <div>
-                    <input
-                        type="text"
-                        onChange={this.handleChange}
-                        onBlur={this.save}
-                        onKeyPress={this.onKeyPress}
-                        value={this.state.value}
-                    />
-                    <DeleteButton
-                        show={this.state.showDeleteButton}
-                        id={this.props.id}
-                        deleteCallback={this.props.deleteCallback}
-                    />
+                <input
+                    type="text"
+                    className="value"
+                    onChange={this.handleChange}
+                    onBlur={this.save}
+                    onKeyPress={this.onKeyPress}
+                    value={this.state.value}
+                />
+            );
+        },
+
+        render: function() {
+            var innards = (this.state.editMode) ? this.renderEditMode() : this.renderDisplayMode();
+            var deleteButton = <ItemDeleteButton index={this.props.index} removeCallback={this.props.removeCallback} />
+
+            return (
+                <div className="field-wrapper" onClick={this.handleClick}>
+                    {innards}
+                    {deleteButton}
                 </div>
             );
         }
@@ -276,7 +318,7 @@
         render: function() {
             return (
                 <li>
-                    <span className="number">{this.props.index+1}.</span>
+                    <ItemNumber initialIndex={this.props.index} reorderCallback={this.props.reorderCallback} />
                     <ItemCheckbox
                         id={this.props.id}
                         checked={this.props.checked}
@@ -287,10 +329,91 @@
                         index={this.props.index}
                         initialValue={this.props.value}
                         updateCallback={this.props.updateCallback}
-                        deleteCallback={this.props.deleteCallback}
+                        removeCallback={this.props.removeCallback}
                     />
                 </li>
             );
+        }
+    });
+
+    var ItemNumber = React.createClass({
+        getInitialState: function() {
+            return {
+                editMode: false,
+                index: this.props.initialIndex
+            };
+        },
+
+        onKeyPress: function(evt) {
+            if (evt.keyCode === 13) {
+                this.save();
+            }
+        },
+
+        handleClick: function(evt) {
+            this.enableEditMode(function() {
+                $(this.getDOMNode()).focus();
+            }.bind(this));
+        },
+
+        enableEditMode: function(callback) {
+            this.setState({
+                editMode: true
+            }, function() {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+        },
+
+        disableEditMode: function() {
+            this.setState(this.getInitialState());
+        },
+
+        handleChange: function(evt) {
+            var newIndex = parseInt(evt.target.value);
+            newIndex = (newIndex >= 1) ? newIndex-1 : '';
+            this.setState({ index: newIndex });
+        },
+
+        save: function() {
+            if (this.state.index === '' || this.state.index == this.props.initialIndex) {
+                this.disableEditMode();
+                return;
+            }
+            var reorderData = {
+                initialIndex: this.props.initialIndex,
+                index: this.state.index,
+            };
+            this.props.reorderCallback(reorderData, function() {
+                this.disableEditMode();
+            }.bind(this));
+        },
+
+        renderEditMode: function() {
+            var displayIndex = (typeof this.state.index === 'number') ? this.state.index+1 : '';
+            return (
+                <input
+                    type="text"
+                    className="number-editor"
+                    onChange={this.handleChange}
+                    onBlur={this.save}
+                    value={displayIndex}
+                />
+            );
+        },
+
+        renderDisplayMode: function() {
+            return (
+                <span
+                    className="number"
+                    onClick={this.handleClick}
+                >{this.props.initialIndex+1}.</span>
+            );
+        },
+
+        render: function() {
+            return (this.state.editMode) ? this.renderEditMode() : this.renderDisplayMode();
         }
     });
 
@@ -309,12 +432,12 @@
         }
     });
 
-    var DeleteButton = React.createClass({
+    var ItemDeleteButton = React.createClass({
         handleClick: function() {
-            this.props.deleteCallback(this.props.id);
+            this.props.removeCallback(this.props.index);
         },
         render: function() {
-            return <a className="delete" onClick={this.handleClick}>X</a>;
+            return <a className="remove" onClick={this.handleClick}>X</a>;
         },
     });
 
