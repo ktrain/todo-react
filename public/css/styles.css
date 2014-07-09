@@ -12,7 +12,7 @@ body input {
 }
 
 header {
-  background: #00a6c4;
+  background: #00cc00;
   padding: 20px 0;
   margin-bottom: 20px;
 }
@@ -32,13 +32,12 @@ ol {
   margin: 0;
   padding: 0;
   list-style: none;
-  list-style-type: octal;
 }
 .list li {
   line-height: 35px;
 }
 .list li:hover {
-  background: #f0f8ff;
+  background: #eeffee;
 }
 .list li > div {
   display: inline-block;
@@ -63,10 +62,10 @@ ol {
   margin-right: 15px;
 }
 .list input[type="checkbox"]:hover {
-  background: #00a6c4;
+  background: #00cc00;
 }
 .list input[type="checkbox"]:checked {
-  background: #43c3d9;
+  background: #008800;
 }
 .list .new-field {
   margin-left: 40px;
