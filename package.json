@@ -6,7 +6,8 @@
     "dependencies": {
         "express": "3.x",
         "ejs": "x",
-        "mongoose": "3.x",
+        "sequelize": "x",
+        "mysql": "x",
         "react": "x"
     },
     "repository": {

@@ -1,13 +1,3 @@
-// connect to mongodb
-var mongoUri = process.env.MONGOLAB_URI
-    || process.env.MONGOHQ_URL
-    || 'mongodb://localhost/todo';
-mongoose = require('mongoose');
-mongoose.connect(mongoUri);
-mongoose.connection.on('error', function() {
-    console.log('ERROR: Unable to connect to MongoDB.');
-});
-
 http = require('http');
 express = require('express');
 
