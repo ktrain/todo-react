@@ -25,6 +25,7 @@ app.post(   '/api/items',       items.create);
 app.put(    '/api/items/:id',   items.update);
 app.delete( '/api/items/:id',   items.delete);
 
+// run it
 var port = process.env.PORT || 8000;
 app.listen(port, function() {
     console.log('Listening on ' + port);

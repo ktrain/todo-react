@@ -23,6 +23,12 @@
     var ReactClassSet = React.addons.classSet;
     var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
+    /**
+     * the master List component
+     * manages list items and stores state
+     *
+     * upon creation, List will ping the API to get all the items
+     */
     var List = React.createClass({
         getInitialState: function() {
             return { items: [], working: false, workingSince: 0 };
@@ -142,6 +148,12 @@
         }
     });
 
+    /**
+     * new items can be typed in to the ItemNewField component
+     *
+     * this component will always appear at the end of the list
+     * pressing enter will create the item
+     */
     var ItemNewField = React.createClass({
         getInitialState: function() {
             return { value: '' };
@@ -179,6 +191,14 @@
         }
     });
 
+
+    /**
+     * handles display and editing of item values
+     *
+     * starts in display mode and switches to edit mode when clicked
+     * triggers an update update request upon losing focus if the value has changed
+     * also contains the item removal button
+     */
     var ItemField = React.createClass({
         getInitialState: function() {
             return {
@@ -218,12 +238,12 @@
             this.setState({ value: evt.target.value });
         },
 
-        showDeleteButton: function() {
-            this.setState({ showDeleteButton: true });
+        showRemoveButton: function() {
+            this.setState({ showRemoveButton: true });
         },
 
-        hideDeleteButton: function() {
-            this.setState({ showDeleteButton: false });
+        hideRemoveButton: function() {
+            this.setState({ showRemoveButton: false });
         },
 
         save: function() {
@@ -246,11 +266,11 @@
                 return (
                     <div className="field-wrapper"
                         onClick={this.handleClick}
-                        onMouseOver={this.showDeleteButton}
-                        onMouseOut={this.hideDeleteButton}
+                        onMouseOver={this.showRemoveButton}
+                        onMouseOut={this.hideRemoveButton}
                     >
                         {this.state.value}
-                        <DeleteButton show={this.state.showDeleteButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
+                        <RemoveButton show={this.state.showRemoveButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
                     </div>
                 );
             }
@@ -265,8 +285,8 @@
                         onKeyPress={this.onKeyPress}
                         value={this.state.value}
                     />
-                    <DeleteButton
-                        show={this.state.showDeleteButton}
+                    <RemoveButton
+                        show={this.state.showRemoveButton}
                         id={this.props.id}
                         deleteCallback={this.props.deleteCallback}
                     />
@@ -275,6 +295,10 @@
         }
     });
 
+
+    /**
+     * the main Item component; simply a wrapper for an ItemQty and an ItemField
+     */
     var Item = React.createClass({
         render: function() {
             return (
@@ -295,6 +319,14 @@
         }
     });
 
+
+    /**
+     * ItemQty handles the display and editing of item quantities
+     *
+     * does not allow non-number characters to be typed
+     * triggers an item update request upon losing focus if the item qty has changed
+     * handles the enter key
+     */
     var ItemQty = React.createClass({
         getInitialState: function() {
             return {
@@ -376,7 +408,11 @@
         }
     });
 
-    var DeleteButton = React.createClass({
+
+    /**
+     * removes the item when clicked
+     */
+    var RemoveButton = React.createClass({
         handleClick: function() {
             this.props.deleteCallback(this.props.id);
         },
@@ -386,6 +422,12 @@
     });
 
 
+    /**
+     * LoadingNotification appears while the app is crunching
+     *
+     * requests are typically completed very quickly,
+     * so this component is a little bit sticky to enhance UX
+     */
     var LoadingNotification = React.createClass({
         render: function() {
             var classes = ReactClassSet({
@@ -401,6 +443,7 @@
     });
 
 
+    // force a re-render of the app every 500ms so the loading component does not display too long
     setInterval(function() {
         React.renderComponent(
             <List source="/api/items" />,

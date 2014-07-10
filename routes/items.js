@@ -1,8 +1,11 @@
 // items model
 
 // connect
+var dbName = 'grocery';
+var username = 'root';
+var password = 'root';
 var Sequelize = require('sequelize')
-    , sequelize = new Sequelize('grocery', 'root', 'root');
+    , sequelize = new Sequelize(dbName, username, password);
 
 // the schema
 var Item = sequelize.define('Item', {
