@@ -49,10 +49,8 @@
             this.setState({ working: true });
             var items = this.state.items;
             var newItemData = {
-                // TODO: fix this
-                index: 0,
-                value: newItemValue,
-                checked: false
+                qty: 1,
+                value: newItemValue
             };
 
             $.post(this.props.source, newItemData, function(data) {
@@ -115,7 +113,7 @@
                     <Item key={id}
                         id={item.id}
                         value={item.value}
-                        checked={item.checked}
+                        qty={item.qty}
                         deleteCallback={this.removeItem}
                         updateCallback={this.updateItem}
                     />
@@ -275,9 +273,9 @@
         render: function() {
             return (
                 <li>
-                    <ItemCheckbox
+                    <ItemQty
                         id={this.props.id}
-                        checked={this.props.checked}
+                        initialQty={this.props.qty}
                         updateCallback={this.props.updateCallback}
                     />
                     <ItemField
@@ -291,18 +289,84 @@
         }
     });
 
-    var ItemCheckbox = React.createClass({
-        handleChange: function(evt) {
-            this.props.updateCallback({
-                id: this.props.id,
-                checked: this.refs.box.getDOMNode().checked
+    var ItemQty = React.createClass({
+        getInitialState: function() {
+            return {
+                editMode: false,
+                qty: this.props.initialQty
+            };
+        },
+
+        onKeyPress: function(evt) {
+            if (evt.keyCode === 13) {
+                this.save();
+            }
+        },
+
+        handleClick: function(evt) {
+            this.enableEditMode(function() {
+                $(this.getDOMNode()).focus();
+            }.bind(this));
+        },
+
+        enableEditMode: function(callback) {
+            this.setState({
+                editMode: true
+            }, function() {
+                if (typeof callback === 'function') {
+                    callback();
+                }
             });
         },
 
-        render: function() {
+        disableEditMode: function() {
+            this.setState(this.getInitialState());
+        },
+
+        handleChange: function(evt) {
+            var newQty = parseInt(evt.target.value);
+            newQty = (newQty >= 1) ? newQty : '';
+            this.setState({ qty: newQty });
+        },
+
+        save: function() {
+            if (this.state.qty === '' || this.state.qty == this.props.initialQty) {
+                this.disableEditMode();
+                return;
+            }
+            var updateData = {
+                id: this.props.id,
+                qty: this.state.qty,
+            };
+            this.props.updateCallback(updateData, function() {
+                this.disableEditMode();
+            }.bind(this));
+        },
+
+        renderEditMode: function() {
+            var displayIndex = (typeof this.state.qty === 'number') ? this.state.qty : '';
             return (
-                <input type="checkbox" ref="box" checked={this.props.checked} onChange={this.handleChange} />
+                <input
+                    type="text"
+                    className="number-editor"
+                    onChange={this.handleChange}
+                    onBlur={this.save}
+                    value={displayIndex}
+                />
             );
+        },
+
+        renderDisplayMode: function() {
+            return (
+                <span
+                    className="number"
+                    onClick={this.handleClick}
+                >{this.props.initialQty} x</span>
+            );
+        },
+
+        render: function() {
+            return (this.state.editMode) ? this.renderEditMode() : this.renderDisplayMode();
         }
     });
 

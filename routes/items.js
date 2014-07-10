@@ -6,8 +6,7 @@ var mongo = require('mongoose');
 var ItemSchema = mongoose.Schema({
     id:         String,
     value:      String,
-    index:      Number,
-    checked:    Boolean
+    qty:        Number
 });
 
 ItemSchema.post('init', function(item) {

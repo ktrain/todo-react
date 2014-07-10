@@ -50,6 +50,18 @@ ol {
   line-height: 27px;
   padding: 0 5px;
 }
+.list li .number {
+  display: inline-block;
+  padding: 0 10px;
+  cursor: pointer;
+}
+.list input.number-editor {
+  width: 33px;
+}
+.list input.value {
+  width: 369px;
+  padding: 0 5px;
+}
 .list input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
