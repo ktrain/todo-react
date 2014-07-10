@@ -140,3 +140,14 @@ footer .code {
 .item-leave.item-leave-active {
   opacity: 0.01;
 }
+
+/* mobile */
+@media only screen and (max-device-width: 480px) {
+  header h1 {
+    width: 100%;
+    font-size: 48px;
+  }
+  section {
+    width: 100%;
+  }
+}
