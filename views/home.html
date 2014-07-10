@@ -375,11 +375,7 @@
             this.props.deleteCallback(this.props.id);
         },
         render: function() {
-            var classes = ReactClassSet({
-                'delete': true,
-                'show'  : this.props.show
-            });
-            return <a className={classes} onClick={this.handleClick}>X</a>;
+            return <a className="remove" onClick={this.handleClick}>X</a>;
         },
     });
 

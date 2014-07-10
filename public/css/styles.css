@@ -82,7 +82,7 @@ ol {
 .list .new-field {
   margin-left: 40px;
 }
-.list .delete {
+.list .remove {
   font-weight: bold;
   color: #900;
   float: right;
@@ -92,12 +92,12 @@ ol {
   cursor: pointer;
   display: none;
 }
-.list .delete:hover {
+.list li:hover .remove {
+  display: inline-block;
+}
+.list .remove:hover {
   background: #900;
   color: #fff;
-}
-.delete.show {
-  display: block;
 }
 
 .loading-container {
