@@ -36,6 +36,7 @@
                     items[item.id] = item;
                 });
                 this.setState({ items: items });
+                console.log(items);
             }.bind(this));
         },
 
@@ -298,7 +299,7 @@
         getInitialState: function() {
             return {
                 editMode: false,
-                qty: this.props.initialQty
+                qty: parseInt(this.props.initialQty),
             };
         },
 

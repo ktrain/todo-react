@@ -1,35 +1,29 @@
-// items
+// items model
 
-var mongo = require('mongoose');
+// connect
+var Sequelize = require('sequelize')
+    , sequelize = new Sequelize('grocery', 'root', 'root');
 
-// model definition
-var ItemSchema = mongoose.Schema({
-    id:         String,
-    value:      String,
-    qty:        Number
+// the schema
+var Item = sequelize.define('Item', {
+    id:     {
+        type: Sequelize.INTEGER(11).UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    value:  Sequelize.STRING(255),
+    qty:    Sequelize.INTEGER,
 });
 
-ItemSchema.post('init', function(item) {
-    item.id = item._id;
-});
-ItemSchema.post('save', function(item) {
-    item.id = item._id;
-    item.update({id: item.id}, function(err) {});
-});
-
-Item = mongoose.model('Item', ItemSchema);
-
-var errorResponse = { 'error': 'An error has occurred.' };
+// create the table, if necessary
+Item.sync();
 
 
-// module functions
-exports.findAll = function(req, res) {
+// instance methods
+
+exports.findAll = function(req,res) {
     console.log('Finding all items');
-    return Item.find(function (err, items) {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(errorResponse);
-        }
+    return Item.findAll().success(function(items) {
         res.send(items);
     });
 };
@@ -37,23 +31,14 @@ exports.findAll = function(req, res) {
 exports.findById = function(req, res) {
     var id = req.params.id;
     console.log('Finding item: ' + id);
-    return Item.findById(id, function(err, item) {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(errorResponse);
-        }
+    return Item.find(id).success(function(item) {
         res.send(item);
     });
 };
 
 exports.create = function(req, res) {
     console.log('Creating new item: ' + JSON.stringify(req.body));
-    var item = new Item(req.body);
-    return item.save(function(err) {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(errorResponse);
-        }
+    var item = Item.create(req.body).success(function(item) {
         res.send(item);
         console.log('Created new item: ' + JSON.stringify(item));
     });
@@ -62,24 +47,19 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
     var id = req.params.id;
     console.log('Updating item: ' + JSON.stringify(req.body));
-    return Item.findOneAndUpdate({'_id':id}, req.body, {}, function(err, item) {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(errorResponse);
-        }
-        res.send(item);
+    return Item.find(id).success(function(item) {
+        item.updateAttributes(req.body).success(function() {
+            res.send(item);
+        });
     });
 };
 
 exports.delete = function(req, res) {
     var id = req.params.id;
     console.log('Deleting item: ' + id);
-    return Item.remove({'_id':id}, function(err) {
-        if (err) {
-            console.log(err);
-            return res.status(500).send(errorResponse);
-        }
-        res.send({});
+    return Item.find(id).success(function(item) {
+        item.destroy().success(function() {
+            res.send({});
+        });
     });
 };
-
