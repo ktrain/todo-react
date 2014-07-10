@@ -34,7 +34,7 @@ ol {
   list-style: none;
 }
 .list li {
-  line-height: 35px;
+  line-height: 2em;
 }
 .list li:hover {
   background: #eeffee;
@@ -52,7 +52,7 @@ ol {
 }
 .list li .number {
   display: inline-block;
-  padding: 0 10px;
+  padding-right: 10px;
   cursor: pointer;
 }
 .list input.number-editor {
@@ -142,12 +142,21 @@ footer .code {
 }
 
 /* mobile */
-@media only screen and (max-device-width: 480px) {
+@media only screen and (max-width: 1080px) {
+  body {
+    font-size: 32px;
+  }
   header h1 {
-    width: 100%;
+    width: auto;
     font-size: 48px;
+    padding: 0 20px;
   }
   section {
-    width: 100%;
+    width: auto;
+    margin: 0 20px;
+  }
+  footer {
+    width: auto;
+    padding: 0 20px;
   }
 }

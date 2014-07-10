@@ -238,14 +238,6 @@
             this.setState({ value: evt.target.value });
         },
 
-        showRemoveButton: function() {
-            this.setState({ showRemoveButton: true });
-        },
-
-        hideRemoveButton: function() {
-            this.setState({ showRemoveButton: false });
-        },
-
         save: function() {
             if (this.state.value == this.props.initialValue) {
                 this.disableEditMode();
@@ -266,11 +258,9 @@
                 return (
                     <div className="field-wrapper"
                         onClick={this.handleClick}
-                        onMouseOver={this.showRemoveButton}
-                        onMouseOut={this.hideRemoveButton}
                     >
                         {this.state.value}
-                        <RemoveButton show={this.state.showRemoveButton} id={this.props.id} deleteCallback={this.props.deleteCallback} />
+                        <ItemRemoveButton id={this.props.id} deleteCallback={this.props.deleteCallback} />
                     </div>
                 );
             }
@@ -285,11 +275,7 @@
                         onKeyPress={this.onKeyPress}
                         value={this.state.value}
                     />
-                    <RemoveButton
-                        show={this.state.showRemoveButton}
-                        id={this.props.id}
-                        deleteCallback={this.props.deleteCallback}
-                    />
+                    <ItemRemoveButton id={this.props.id} deleteCallback={this.props.deleteCallback} />
                 </div>
             );
         }
@@ -412,7 +398,7 @@
     /**
      * removes the item when clicked
      */
-    var RemoveButton = React.createClass({
+    var ItemRemoveButton = React.createClass({
         handleClick: function() {
             this.props.deleteCallback(this.props.id);
         },
